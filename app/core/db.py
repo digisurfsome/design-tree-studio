@@ -161,12 +161,12 @@ def check_tables_exist() -> tuple[bool, list[str]]:
 
         # Expected tables from our models
         expected_tables = [
-            "user_profiles",
+            "users",
             "projects",
             "project_contexts",
             "nodes",
             "node_versions",
-            "draft_meta",
+            "draft_metas",
             "rant_summaries",
             "chat_sessions",
             "chat_messages",

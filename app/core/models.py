@@ -87,7 +87,7 @@ class UserProfile(Base, TimestampMixin):
 
     Stores basic user information and preferences.
     """
-    __tablename__ = "user_profiles"
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
@@ -121,7 +121,7 @@ class Project(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id"), nullable=False, index=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     tags: Mapped[Optional[list]] = mapped_column(JSON)  # Array of tags
     extra_metadata: Mapped[Optional[dict]] = mapped_column("metadata", JSON)  # Additional project metadata
@@ -264,7 +264,7 @@ class DraftMeta(Base, TimestampMixin):
 
     Stores draft-specific information and AI-generated content for nodes.
     """
-    __tablename__ = "draft_meta"
+    __tablename__ = "draft_metas"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     node_id: Mapped[int] = mapped_column(ForeignKey("nodes.id"), unique=True, nullable=False, index=True)
@@ -298,7 +298,7 @@ class RantSummary(Base, TimestampMixin):
     __tablename__ = "rant_summaries"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user_profiles.id"), index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
     project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("projects.id"), index=True)
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -329,7 +329,7 @@ class ChatSession(Base, TimestampMixin):
     __tablename__ = "chat_sessions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("projects.id"), index=True)
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -409,8 +409,8 @@ class BatonSnapshot(Base, TimestampMixin):
     __tablename__ = "baton_snapshots"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("chat_sessions.id"), nullable=False, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id"), nullable=False, index=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("chat_sessions.id"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"), nullable=False, index=True)
 
     snapshot_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -449,7 +449,7 @@ class Settings(Base, TimestampMixin):
     __tablename__ = "settings"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user_profiles.id"), index=True)
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), index=True)
 
     setting_key: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     setting_value: Mapped[Optional[str]] = mapped_column(Text)
