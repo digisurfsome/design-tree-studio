@@ -191,6 +191,11 @@ def check_tables_exist() -> tuple[bool, list[str]]:
             "chat_messages",
             "baton_snapshots",
             "settings",
+            # Roundtable Coder tables
+            "roundtable_sessions",
+            "roundtable_rounds",
+            "roundtable_agents",
+            "roundtable_responses",
         ]
 
         return len(existing_tables) > 0, existing_tables

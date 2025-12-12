@@ -140,6 +140,9 @@ class Project(Base, TimestampMixin):
     batons: Mapped[list["BatonSnapshot"]] = relationship(
         "BatonSnapshot", back_populates="project", cascade="all, delete-orphan"
     )
+    roundtable_sessions: Mapped[list["RoundtableSession"]] = relationship(
+        "RoundtableSession", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Project(id={self.id}, name='{self.name}', owner_id={self.owner_id})>"
@@ -463,3 +466,142 @@ class Settings(Base, TimestampMixin):
 
     def __repr__(self):
         return f"<Settings(id={self.id}, key='{self.setting_key}', global={self.is_global})>"
+
+
+# ============================================================================
+# ROUNDTABLE CODER MODELS
+# ============================================================================
+
+class RoundtableSessionStatus(str, enum.Enum):
+    """Status of a roundtable coding session."""
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+
+
+class AgentRole(str, enum.Enum):
+    """Role of an agent in a roundtable round."""
+    BUILDER = "builder"
+    VOTER = "voter"
+    REVIEWER = "reviewer"
+
+
+class VoteType(str, enum.Enum):
+    """Type of vote from a voter agent."""
+    APPROVE = "approve"
+    REJECT = "reject"
+    ABSTAIN = "abstain"
+
+
+class RoundtableSession(Base, TimestampMixin):
+    """
+    A roundtable coding session.
+
+    Represents a multi-agent coding session with rounds, agents, and voting.
+    """
+    __tablename__ = "roundtable_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("projects.id"), index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[RoundtableSessionStatus] = mapped_column(
+        SQLEnum(RoundtableSessionStatus),
+        default=RoundtableSessionStatus.ACTIVE,
+        nullable=False
+    )
+    master_prompt: Mapped[Optional[str]] = mapped_column(Text)
+    master_guardrails: Mapped[Optional[str]] = mapped_column(Text)
+    voting_threshold: Mapped[float] = mapped_column(Float, default=0.66, nullable=False)
+    execution_mode: Mapped[str] = mapped_column(String(20), default="single", nullable=False)  # "single" or "multi"
+
+    # Relationships
+    project: Mapped[Optional["Project"]] = relationship("Project", back_populates="roundtable_sessions")
+    rounds: Mapped[list["RoundtableRound"]] = relationship(
+        "RoundtableRound", back_populates="session", cascade="all, delete-orphan",
+        order_by="RoundtableRound.round_number"
+    )
+
+    def __repr__(self):
+        return f"<RoundtableSession(id={self.id}, name='{self.name}', status='{self.status}')>"
+
+
+class RoundtableRound(Base, TimestampMixin):
+    """
+    A single round within a roundtable session.
+
+    Each round has a task prompt and multiple agents that work on it.
+    """
+    __tablename__ = "roundtable_rounds"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("roundtable_sessions.id"), nullable=False, index=True)
+    round_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    name: Mapped[Optional[str]] = mapped_column(String(255))
+    task_prompt: Mapped[Optional[str]] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)  # pending, running, completed
+    consensus_reached: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    consensus_percentage: Mapped[Optional[float]] = mapped_column(Float)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+
+    # Relationships
+    session: Mapped["RoundtableSession"] = relationship("RoundtableSession", back_populates="rounds")
+    agents: Mapped[list["RoundtableAgent"]] = relationship(
+        "RoundtableAgent", back_populates="round", cascade="all, delete-orphan",
+        order_by="RoundtableAgent.agent_order"
+    )
+
+    def __repr__(self):
+        return f"<RoundtableRound(id={self.id}, session_id={self.session_id}, round={self.round_number})>"
+
+
+class RoundtableAgent(Base, TimestampMixin):
+    """
+    An agent configured for a specific round.
+
+    Each agent has a model, provider, and role (builder/voter/reviewer).
+    """
+    __tablename__ = "roundtable_agents"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    round_id: Mapped[int] = mapped_column(ForeignKey("roundtable_rounds.id"), nullable=False, index=True)
+    agent_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)  # anthropic, openai
+    role: Mapped[AgentRole] = mapped_column(SQLEnum(AgentRole), nullable=False)
+    prompt_override: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Relationships
+    round: Mapped["RoundtableRound"] = relationship("RoundtableRound", back_populates="agents")
+    responses: Mapped[list["RoundtableResponse"]] = relationship(
+        "RoundtableResponse", back_populates="agent", cascade="all, delete-orphan",
+        order_by="RoundtableResponse.iteration"
+    )
+
+    def __repr__(self):
+        return f"<RoundtableAgent(id={self.id}, model='{self.model}', role='{self.role}')>"
+
+
+class RoundtableResponse(Base, TimestampMixin):
+    """
+    A response from an agent in a round.
+
+    Stores the content, vote (if voter), and usage metrics.
+    """
+    __tablename__ = "roundtable_responses"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    agent_id: Mapped[int] = mapped_column(ForeignKey("roundtable_agents.id"), nullable=False, index=True)
+    iteration: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    content: Mapped[Optional[str]] = mapped_column(Text)
+    vote: Mapped[Optional[VoteType]] = mapped_column(SQLEnum(VoteType))
+    vote_reason: Mapped[Optional[str]] = mapped_column(Text)
+    tokens_input: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    tokens_output: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    cost: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    duration_seconds: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+    # Relationships
+    agent: Mapped["RoundtableAgent"] = relationship("RoundtableAgent", back_populates="responses")
+
+    def __repr__(self):
+        return f"<RoundtableResponse(id={self.id}, agent_id={self.agent_id}, vote='{self.vote}')>"
