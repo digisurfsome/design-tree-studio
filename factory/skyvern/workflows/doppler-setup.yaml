@@ -1,0 +1,138 @@
+# ===========================================
+# SKYVERN WORKFLOW: Doppler Project Setup
+# ===========================================
+# Creates a new project in Doppler and sets up secrets
+#
+# Usage via API:
+#   POST /workflows/doppler-setup/run
+#   {
+#     "project_id": "project-001",
+#     "project_name": "inventory-system",
+#     "db_host": "localhost",
+#     "db_name": "inventory_prod",
+#     "db_user": "inventory_user",
+#     "db_pass": "generated-password"
+#   }
+
+name: doppler-setup
+description: Create Doppler project and add secrets
+
+parameters:
+  project_id:
+    type: string
+    required: true
+  project_name:
+    type: string
+    required: true
+  db_host:
+    type: string
+    default: "localhost"
+  db_name:
+    type: string
+    required: true
+  db_user:
+    type: string
+    required: true
+  db_pass:
+    type: string
+    required: true
+
+steps:
+  # Step 1: Navigate to Doppler dashboard
+  - name: go_to_doppler
+    action: navigate
+    url: "https://dashboard.doppler.com"
+    wait_for: "[data-testid='projects-list']"
+
+  # Step 2: Click "New Project"
+  - name: click_new_project
+    action: click
+    selector: "button:contains('New Project')"
+    fallback_text: "New Project"
+
+  # Step 3: Fill project name
+  - name: fill_project_name
+    action: fill
+    selector: "input[name='name'], input[placeholder*='project']"
+    value: "{{project_id}}-{{project_name}}"
+
+  # Step 4: Create project
+  - name: create_project
+    action: click
+    selector: "button[type='submit']:contains('Create')"
+    wait_for_navigation: true
+
+  # Step 5: Go to secrets
+  - name: go_to_secrets
+    action: click
+    selector: "a:contains('Secrets'), [data-testid='secrets-tab']"
+
+  # Step 6: Add DB_HOST secret
+  - name: add_db_host
+    action: sequence
+    steps:
+      - action: click
+        selector: "button:contains('Add Secret')"
+      - action: fill
+        selector: "input[name='key']"
+        value: "DB_HOST"
+      - action: fill
+        selector: "input[name='value'], textarea[name='value']"
+        value: "{{db_host}}"
+      - action: click
+        selector: "button:contains('Save')"
+
+  # Step 7: Add DB_NAME secret
+  - name: add_db_name
+    action: sequence
+    steps:
+      - action: click
+        selector: "button:contains('Add Secret')"
+      - action: fill
+        selector: "input[name='key']"
+        value: "DB_NAME"
+      - action: fill
+        selector: "input[name='value'], textarea[name='value']"
+        value: "{{db_name}}"
+      - action: click
+        selector: "button:contains('Save')"
+
+  # Step 8: Add DB_USER secret
+  - name: add_db_user
+    action: sequence
+    steps:
+      - action: click
+        selector: "button:contains('Add Secret')"
+      - action: fill
+        selector: "input[name='key']"
+        value: "DB_USER"
+      - action: fill
+        selector: "input[name='value'], textarea[name='value']"
+        value: "{{db_user}}"
+      - action: click
+        selector: "button:contains('Save')"
+
+  # Step 9: Add DB_PASS secret
+  - name: add_db_pass
+    action: sequence
+    steps:
+      - action: click
+        selector: "button:contains('Add Secret')"
+      - action: fill
+        selector: "input[name='key']"
+        value: "DB_PASS"
+      - action: fill
+        selector: "input[name='value'], textarea[name='value']"
+        value: "{{db_pass}}"
+      - action: click
+        selector: "button:contains('Save')"
+
+  # Step 10: Verify secrets are saved
+  - name: verify_secrets
+    action: verify
+    selector: "text=DB_HOST"
+    timeout: 5000
+
+output:
+  project_url: "https://dashboard.doppler.com/workplace/projects/{{project_id}}-{{project_name}}"
+  status: "complete"

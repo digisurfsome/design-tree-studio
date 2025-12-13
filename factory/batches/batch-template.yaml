@@ -1,0 +1,105 @@
+# ===========================================
+# BATCH TEMPLATE
+# ===========================================
+# Copy this file and fill in project details:
+#   cp batch-template.yaml batch-001.yaml
+#
+# Then run:
+#   python scripts/factory_controller.py batches/batch-001.yaml
+
+batch_id: "batch-001"
+created: "2024-12-13"
+status: "queued"
+
+# Default settings (can be overridden per project)
+defaults:
+  server_size: "s-1vcpu-1gb"  # $6/month DigitalOcean
+  region: "nyc3"
+  type: "saas-template-base"
+
+projects:
+  # Project 1
+  - id: "project-001"
+    name: "inventory-system"
+    domain: "inventory.yourdomain.com"
+    client: "Client A Corp"
+    # Optional overrides:
+    # server_size: "s-2vcpu-4gb"  # $24/month for bigger projects
+    # region: "sfo3"  # San Francisco
+
+  # Project 2
+  - id: "project-002"
+    name: "booking-platform"
+    domain: "bookings.yourdomain.com"
+    client: "Client B LLC"
+
+  # Project 3
+  - id: "project-003"
+    name: "crm-dashboard"
+    domain: "crm.yourdomain.com"
+    client: "Client C Inc"
+
+  # Project 4
+  - id: "project-004"
+    name: "task-manager"
+    domain: "tasks.yourdomain.com"
+    client: "Client D Ltd"
+
+  # Project 5
+  - id: "project-005"
+    name: "helpdesk-portal"
+    domain: "helpdesk.yourdomain.com"
+    client: "Client E GmbH"
+    region: "fra1"  # Frankfurt for EU client
+
+  # Project 6
+  - id: "project-006"
+    name: "analytics-dashboard"
+    domain: "analytics.yourdomain.com"
+    client: "Client F Corp"
+
+  # Project 7
+  - id: "project-007"
+    name: "customer-portal"
+    domain: "portal.yourdomain.com"
+    client: "Client G Inc"
+
+  # Project 8
+  - id: "project-008"
+    name: "order-management"
+    domain: "orders.yourdomain.com"
+    client: "Client H LLC"
+
+  # Project 9
+  - id: "project-009"
+    name: "invoice-system"
+    domain: "invoices.yourdomain.com"
+    client: "Client I Ltd"
+
+  # Project 10
+  - id: "project-010"
+    name: "project-tracker"
+    domain: "tracker.yourdomain.com"
+    client: "Client J Corp"
+
+# ===========================================
+# REGION OPTIONS (DigitalOcean)
+# ===========================================
+# nyc1, nyc3  - New York
+# sfo2, sfo3  - San Francisco
+# ams3        - Amsterdam
+# sgp1        - Singapore
+# lon1        - London
+# fra1        - Frankfurt
+# tor1        - Toronto
+# blr1        - Bangalore
+
+# ===========================================
+# SERVER SIZE OPTIONS (DigitalOcean)
+# ===========================================
+# s-1vcpu-512mb-10gb  - $4/month  (minimal)
+# s-1vcpu-1gb         - $6/month  (starter) ← recommended
+# s-1vcpu-2gb         - $12/month (small)
+# s-2vcpu-2gb         - $18/month (medium)
+# s-2vcpu-4gb         - $24/month (large)
+# s-4vcpu-8gb         - $48/month (xlarge)

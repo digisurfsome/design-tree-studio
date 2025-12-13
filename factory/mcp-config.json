@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "skyvern": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/skyvern-mcp-server"],
+      "env": {
+        "SKYVERN_API_URL": "http://localhost:8000",
+        "SKYVERN_API_KEY": "${SKYVERN_API_KEY}"
+      }
+    },
+    "browser": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/browser-mcp-server"],
+      "env": {
+        "BROWSER_HEADLESS": "true"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/filesystem-mcp-server"],
+      "env": {
+        "ALLOWED_PATHS": "/home/user/design-tree-studio/factory"
+      }
+    }
+  }
+}

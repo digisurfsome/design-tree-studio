@@ -1,0 +1,102 @@
+# ===========================================
+# SKYVERN WORKFLOW: Visual Health Check
+# ===========================================
+# Performs a visual health check on a deployed application
+# Takes screenshots and verifies key pages load correctly
+#
+# Usage via API:
+#   POST /workflows/health-check-ui/run
+#   {
+#     "domain": "inventory.yourdomain.com",
+#     "admin_email": "admin@domain.com",
+#     "admin_pass": "ChangeMe123!"
+#   }
+
+name: health-check-ui
+description: Visual verification of deployed application
+
+parameters:
+  domain:
+    type: string
+    required: true
+  admin_email:
+    type: string
+    required: true
+  admin_pass:
+    type: string
+    required: true
+
+steps:
+  # Step 1: Check homepage loads
+  - name: check_homepage
+    action: navigate
+    url: "https://{{domain}}"
+    wait_for: "body"
+    screenshot: true
+    verify:
+      - type: status_code
+        expected: 200
+      - type: element_exists
+        selector: "html"
+
+  # Step 2: Check login page
+  - name: check_login_page
+    action: navigate
+    url: "https://{{domain}}/login.php"
+    wait_for: "form"
+    screenshot: true
+    verify:
+      - type: element_exists
+        selector: "input[type='email'], input[name='email']"
+      - type: element_exists
+        selector: "input[type='password']"
+
+  # Step 3: Attempt login
+  - name: perform_login
+    action: sequence
+    steps:
+      - action: fill
+        selector: "input[type='email'], input[name='email']"
+        value: "{{admin_email}}"
+      - action: fill
+        selector: "input[type='password']"
+        value: "{{admin_pass}}"
+      - action: click
+        selector: "button[type='submit'], input[type='submit']"
+      - action: wait
+        timeout: 3000
+
+  # Step 4: Verify dashboard loads
+  - name: check_dashboard
+    action: verify
+    screenshot: true
+    checks:
+      - type: url_contains
+        value: "dashboard"
+      - type: element_exists
+        selector: ".dashboard, #dashboard, [data-page='dashboard']"
+
+  # Step 5: Check API health endpoint
+  - name: check_api
+    action: navigate
+    url: "https://{{domain}}/api/health.php"
+    verify:
+      - type: content_contains
+        value: "ok"
+
+  # Step 6: Check SSL certificate
+  - name: check_ssl
+    action: verify_ssl
+    domain: "{{domain}}"
+    checks:
+      - type: valid
+      - type: not_expired
+
+output:
+  homepage: "pass/fail"
+  login_page: "pass/fail"
+  login_works: "pass/fail"
+  dashboard: "pass/fail"
+  api: "pass/fail"
+  ssl: "pass/fail"
+  screenshots: ["homepage.png", "login.png", "dashboard.png"]

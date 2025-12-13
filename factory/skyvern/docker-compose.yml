@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  skyvern:
+    image: skyvern/skyvern:latest
+    container_name: skyvern-agent
+    ports:
+      - "8080:8080"  # Web UI
+      - "8000:8000"  # API
+    environment:
+      # LLM Provider Keys (loaded from .env file)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+      # Default LLM (use Claude for best reasoning)
+      - LLM_KEY=ANTHROPIC_API_KEY
+      - LLM_MODEL=claude-sonnet-4-20250514
+
+      # Browser settings
+      - BROWSER_HEADLESS=true
+      - BROWSER_TIMEOUT=60000
+
+      # Storage
+      - DATABASE_URL=postgresql://skyvern:skyvern@postgres:5432/skyvern
+      - REDIS_URL=redis://redis:6379
+
+      # API settings
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+
+      # Security
+      - SKYVERN_API_KEY=${SKYVERN_API_KEY:-sk-local-dev-key}
+
+    volumes:
+      - ./workflows:/app/workflows
+      - ./recordings:/app/recordings
+      - skyvern-data:/app/data
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - skyvern-network
+
+  postgres:
+    image: postgres:15
+    container_name: skyvern-postgres
+    environment:
+      - POSTGRES_USER=skyvern
+      - POSTGRES_PASSWORD=skyvern
+      - POSTGRES_DB=skyvern
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - skyvern-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: skyvern-redis
+    restart: unless-stopped
+    networks:
+      - skyvern-network
+
+  # Optional: Browserless for better browser management
+  browserless:
+    image: browserless/chrome:latest
+    container_name: skyvern-browserless
+    ports:
+      - "3000:3000"
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=60000
+      - MAX_QUEUE_LENGTH=20
+    restart: unless-stopped
+    networks:
+      - skyvern-network
+
+volumes:
+  postgres-data:
+  skyvern-data:
+
+networks:
+  skyvern-network:
+    driver: bridge
