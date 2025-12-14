@@ -47,16 +47,16 @@ def inject_compact_css() -> None:
     """
     st.markdown("""
     <style>
-    /* Reduce main container padding */
+    /* Reduce main container padding - half of default */
     .main .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
         max-width: 100% !important;
     }
 
     /* Reduce header padding */
     header[data-testid="stHeader"] {
-        height: 2.5rem !important;
+        height: 2rem !important;
     }
 
     /* Tighter tab styling */
@@ -74,14 +74,7 @@ def inject_compact_css() -> None:
         padding: 0 8px !important;
     }
 
-    /* Compact sidebar */
-    [data-testid="stSidebar"] {
-        min-width: 200px !important;
-        max-width: 250px !important;
-    }
-    [data-testid="stSidebar"] .block-container {
-        padding: 1rem 0.5rem !important;
-    }
+    /* NOTE: No fixed sidebar widths - let it naturally expand/collapse */
 
     /* Reduce vertical spacing between elements */
     .element-container {
@@ -99,75 +92,9 @@ def inject_compact_css() -> None:
         margin-bottom: 0.5rem !important;
     }
 
-    /* Compact status bar */
-    .compact-status-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 16px;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border-radius: 8px;
-        margin-bottom: 8px;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    .compact-status-bar .status-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        color: #e2e8f0;
-    }
-    .compact-status-bar .status-badge {
-        padding: 3px 10px;
-        border-radius: 10px;
-        font-size: 11px;
-        font-weight: 600;
-    }
-    .badge-green { background: #059669; color: white; }
-    .badge-yellow { background: #d97706; color: #1e293b; }
-    .badge-blue { background: #3b82f6; color: white; }
-    .badge-purple { background: #8b5cf6; color: white; }
-
-    /* Inline refresh banner */
-    .inline-refresh-banner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 16px;
-        background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-        border: 1px solid #3b82f6;
-        border-radius: 8px;
-        margin-bottom: 8px;
-    }
-    .inline-refresh-banner .refresh-text {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #e2e8f0;
-        font-size: 13px;
-    }
-    .inline-refresh-banner .time-badge {
-        background: rgba(59, 130, 246, 0.3);
-        padding: 2px 8px;
-        border-radius: 8px;
-        font-size: 11px;
-        color: #93c5fd;
-    }
-
     /* Hide default Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-
-    /* Compact project banner */
-    .project-banner {
-        background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
-        padding: 8px 12px;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        font-size: 13px;
-        color: #d1fae5;
-    }
     </style>
     """, unsafe_allow_html=True)
 

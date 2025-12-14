@@ -458,8 +458,12 @@ def main():
         st.caption(f"{settings.APP_NAME} v{settings.APP_VERSION}")
 
     # =========================================================================
-    # COMPACT LAYOUT: Status bar at top, then columns
+    # COMPACT LAYOUT: Small title, divider, then status bar
     # =========================================================================
+
+    # Small title at top
+    st.markdown(f"### {settings.APP_NAME}")
+    st.divider()
 
     # Get project and user info for status bar
     project = None
