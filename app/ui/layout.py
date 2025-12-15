@@ -194,7 +194,7 @@ def render_compact_status_bar(
 
     with col3:
         if is_ready:
-            st.success("Ready", icon="✅")
+            st.success("Ready", icon="✓")
         else:
             st.warning("Warmup", icon="⏳")
 
