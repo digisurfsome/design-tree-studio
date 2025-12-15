@@ -517,11 +517,8 @@ def main():
                             # Still showing warmup, don't render anything else
                             st.stop()
 
-                    # Phase 5: Compact inline context refresh
-                    refresh_dismissed, _ = render_inline_context_refresh(db, project, current_user.id)
-                    if not refresh_dismissed:
-                        # Still showing refresh, don't render anything else
-                        st.stop()
+                    # Phase 5: Compact inline context refresh (non-blocking)
+                    render_inline_context_refresh(db, project, current_user.id)
 
                     # Record activity ping
                     record_activity_ping(db, current_user.id, project.id)

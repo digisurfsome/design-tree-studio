@@ -2088,9 +2088,10 @@ def render_inline_context_refresh(
 ) -> Tuple[bool, Optional[str]]:
     """
     Render a compact inline banner for context refresh.
+    NOTE: This is non-blocking - always returns True so page continues to render.
 
     Returns:
-        Tuple of (dismissed, time_away_str)
+        Tuple of (always True, time_away_str or None)
     """
     from app.services.session_service import (
         calculate_time_away,
@@ -2107,35 +2108,28 @@ def render_inline_context_refresh(
         record_activity_ping(db, user_id, project.id)
         return True, None
 
+    time_str = format_time_away(hours_away)
+
     # Check if refresh was already dismissed this session
     refresh_key = f"refresh_dismissed_{project.id}"
     if st.session_state.get(refresh_key, False):
-        return True, format_time_away(hours_away)
+        return True, time_str
 
-    time_str = format_time_away(hours_away)
-
-    # Compact inline banner with columns
-    col1, col2 = st.columns([4, 1])
+    # Show compact inline banner - use wider ratio for button
+    col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.markdown(f"""
-        <div class="inline-refresh-banner">
-            <div class="refresh-text">
-                <span>📋</span>
-                <strong>Session Recap</strong>
-                <span class="time-badge">Away for {time_str}</span>
-                <span style="color: #94a3b8;">Welcome back! Let's recap where things stand.</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info(f"📋 **Session Recap** • Away for {time_str} • Welcome back!")
 
     with col2:
-        if st.button("Continue Working", key="inline_refresh_continue", type="primary", use_container_width=True):
+        if st.button("✓ Continue", key="inline_refresh_continue", type="primary", use_container_width=True):
             start_new_session(db, user_id, project.id)
             st.session_state[refresh_key] = True
-            return True, time_str
+            st.rerun()
 
-    return False, time_str
+    # Always return True so page continues to render
+    # The banner is just informational, not blocking
+    return True, time_str
 
 
 def render_learning_status_bar(
